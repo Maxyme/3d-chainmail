@@ -1,40 +1,48 @@
-#this module finds the voxels composing the surface to be deplaced. It uses a radius of neighbors to limit the surface space.
+﻿#this module finds the voxels composing the surface to be deplaced. It uses a radius of neighbors to limit the surface space.
 #the surface cannot be larger than the side of the cube. Also, it only gets the neighbors on the same level, not in depth (z variation)
 # 14 Apr 09: Reservation on a surface with an an angle; idea is that all the neighbors follow the same movement as the sponsor.
 
 def find(voxel,matrix):                    #function that finds a defined voxel position in a matrix
-    for i in range(len(matrix)):           #from 0 to the end of the matrix 
-        if (voxel[0]==matrix[i][0] and voxel[1]==matrix[i][1] and voxel[2]==matrix[i][2]):
+    for i in range(len(matrix)):           #from 0 to the end of the matrix
+        if (voxel[0] == matrix[i][0] and voxel[1] == matrix[i][1] and voxel[2] == matrix[i][2]):
             break
     return i
 
-def findNeighbors(sponsorpos,matrix,sponsorhist,side,step):         #this functions finds all the neighbors of the sponsor, it requires the variable step and side variables
-    neighborlist=[]                                                 #it also will not add values outside the cube as neighbors, and it will not add previous sponsors
-    sponsor=matrix[sponsorpos]                                      #gets the original value of the sponsor to find the neighbors
+def findNeighbors(sponsorpos,matrix,sponsorhist,side,step):         #this functions finds all the neighbors of the sponsor, it requires
+                                                                    #the variable step and side variables
+    neighborlist = []                                                 #it also will not add values
+                                                                      #outside the cube as
+                                                                      #neighbors, and it will not
+                                                                      #add previous sponsors
+    sponsor = matrix[sponsorpos]                                      #gets the original value of the sponsor
+                                                                      #to find the neighbors
 
-    if (sponsor[0]+step < side*step):
-        rn=[sponsor[0]+step,sponsor[1],sponsor[2],0]                #the right neighbor value=0 ; left =1; top =2; bottom = 3 down = 4.
-        if (find(rn,matrix) in sponsorhist) == False:                          #if the right neighbor is not a previous sponsor, it adds the value to the neighbor list
+    if (sponsor[0] + step < side * step):
+        rn = [sponsor[0] + step,sponsor[1],sponsor[2],0]                #the right neighbor value=0 ; left =1; top =2; bottom = 3 down
+                                                                        #= 4.
+        if (find(rn,matrix) in sponsorhist) == False:                          #if the right neighbor is not a previous sponsor, it
+                                                                               #adds the value to the neighbor list
             neighborlist.append(rn)
             
-    if (sponsor[0]-step >= 0):
-        ln=[sponsor[0]-step,sponsor[1],sponsor[2],1]
-        if (find(ln,matrix) in sponsorhist)==False:
+    if (sponsor[0] - step >= 0):
+        ln = [sponsor[0] - step,sponsor[1],sponsor[2],1]
+        if (find(ln,matrix) in sponsorhist) == False:
             neighborlist.append(ln)
             
-    if (sponsor[1]+step < side*step):
-        tn=[sponsor[0],sponsor[1]+step,sponsor[2],2]
+    if (sponsor[1] + step < side * step):
+        tn = [sponsor[0],sponsor[1] + step,sponsor[2],2]
         if (find(tn,matrix) in sponsorhist) == False:
             neighborlist.append(tn)
             
-    if (sponsor[1]-step >= 0):
-        bn=[sponsor[0],sponsor[1]-step,sponsor[2],3]
+    if (sponsor[1] - step >= 0):
+        bn = [sponsor[0],sponsor[1] - step,sponsor[2],3]
         if (find(bn,matrix) in sponsorhist) == False:
             neighborlist.append(bn)
             
     return neighborlist
 
-def deformSurface(surface_list,matrix):  #this deforms the surface found (all the neighbors) according to the vector of deformation applied to the sponso#
+def deformSurface(surface_list,matrix):  #this deforms the surface found (all the neighbors) according to the vector
+                                         #of deformation applied to the sponso#
 
     sponsor = surface_list[0]
     del surface_list[0]
@@ -44,10 +52,11 @@ def deformSurface(surface_list,matrix):  #this deforms the surface found (all th
     vectory = sponsor[1] - original_sponsor[1]  
     vectorz = sponsor[2] - original_sponsor[2]  
 
-    for i in range(len(surface_list)):                      #applies the deformation to the entire surface list of sponsor/neighbors
-        surface_list[i][0] = surface_list[i][0]+vectorx
-        surface_list[i][1] = surface_list[i][1]+vectory
-        surface_list[i][2] = surface_list[i][2]+vectorz
+    for i in range(len(surface_list)):                      #applies the deformation to the entire surface list of
+                                                            #sponsor/neighbors
+        surface_list[i][0] = surface_list[i][0] + vectorx
+        surface_list[i][1] = surface_list[i][1] + vectory
+        surface_list[i][2] = surface_list[i][2] + vectorz
 
     surface_list.insert(0,sponsor)            #adds the surface sponsor to the list again
     
@@ -57,19 +66,23 @@ def deformSurface(surface_list,matrix):  #this deforms the surface found (all th
 
 def findSurfaceSponsors(sponsor,matrix,side,step):       #the radius value is included in the sponsor [4]
     surface_sponsors = []          #the list of sponsors to include in the deform function
-    outside_layer = []            #the list of neighbors at the layer of the radius function. Ex, for radius 1, the layer neighbor is the sponsor
+    outside_layer = []            #the list of neighbors at the layer of the radius function.  Ex,
+                                  #for radius 1, the layer neighbor is the sponsor
     sponsor_history = []            #the sponsor_history list
-                                    #for a radius of 2, the new layer neighbors are the neighbors added for a radius of 1.
+                                    #for a radius of 2, the new layer neighbors
+                                                            #are the neighbors added for a radius of 1.
     radius = sponsor[4]
     del sponsor[4]
     
     surface_sponsors.append(sponsor) #includes the sponsor position also [3]
     outside_layer.extend(surface_sponsors)
-    sponsor_history.append(sponsor[3]) #puts the sponsor position in a list so that it adds the sponsors when it looks for it.
+    sponsor_history.append(sponsor[3]) #puts the sponsor position in a list so that it adds the sponsors when it
+                                       #looks for it.
     
-    if radius != 0:                         # if the radius = 0, it returns only the first sponsor.
+    if radius != 0:                         # if the radius = 0, it returns only the first
+                                            # sponsor.
         for i in range(radius):
-            storage_layer = []                              #empty storage layer of neighbors        
+            storage_layer = []                              #empty storage layer of neighbors
             while len(outside_layer) > 0:
                 use_sponsor = outside_layer.pop(0)
                 storage_layer.extend(findNeighbors(use_sponsor[3],matrix,sponsor_history,side,step))
