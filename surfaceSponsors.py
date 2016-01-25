@@ -2,13 +2,13 @@
 #the surface cannot be larger than the side of the cube. Also, it only gets the neighbors on the same level, not in depth (z variation)
 # 14 Apr 09: Reservation on a surface with an an angle; idea is that all the neighbors follow the same movement as the sponsor.
 
-def find(voxel,matrix):                    #function that finds a defined voxel position in a matrix
+def find(voxel, matrix):                    #function that finds a defined voxel position in a matrix
     for i in range(len(matrix)):           #from 0 to the end of the matrix
         if (voxel[0] == matrix[i][0] and voxel[1] == matrix[i][1] and voxel[2] == matrix[i][2]):
             break
     return i
 
-def findNeighbors(sponsorpos,matrix,sponsorhist,side,step):         #this functions finds all the neighbors of the sponsor, it requires
+def findNeighbors(sponsorpos, matrix, sponsorhist, side, step):         #this functions finds all the neighbors of the sponsor, it requires
                                                                     #the variable step and side variables
     neighborlist = []                                                 #it also will not add values
                                                                       #outside the cube as

@@ -48,7 +48,7 @@ def deformLN(sponsor,candidate):                #function that deforms the LEFT 
         return candidate
 
 
-def deformTN(sponsor,candidate):                #function that deforms the TOP neighbor of the sponsor
+def deformTN(sponsor, candidate):                #function that deforms the TOP neighbor of the sponsor
     compare = candidate[:]    
     if (candidate[1] - sponsor[1]) < minimum:       
         candidate[1] = sponsor[1] + minimum
@@ -68,7 +68,7 @@ def deformTN(sponsor,candidate):                #function that deforms the TOP n
         return candidate
 
 
-def deformBN(sponsor,candidate):                #function that deforms the Bottom neighbor of the sponsor
+def deformBN(sponsor, candidate):                #function that deforms the Bottom neighbor of the sponsor
     compare = candidate[:]
     if (candidate[1] - sponsor[1]) > -minimum:       
         candidate[1] = sponsor[1] - minimum
