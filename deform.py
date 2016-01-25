@@ -1,14 +1,23 @@
-﻿# deform module 1 pixel = 1mm distance.
-#convention: ytop is above ybottom so ytop has a bigger y value than y bottom. xright has a bigger x value than xleft. zdown has a smaller value than z. 
-#this is the convention when comparing voxels, so not to get the comparisons mixed up.
+﻿"""
+ deform module 1 pixel = 1mm distance.
+convention: ytop is above ybottom so ytop has a bigger y value than y bottom. xright has a bigger x value than xleft. zdown has a smaller value than z.
+this is the convention when comparing voxels, so not to get the comparisons mixed up.
 
-def find(voxel,matrix):                    #function that finds a defined voxel position in a matrix
-    for i in range(len(matrix)):           #from 0 to the end of the matrix
-        if (voxel[0] == matrix[i][0] and voxel[1] == matrix[i][1] and voxel[2] == matrix[i][2]):
+"""
+
+
+def find(voxel, matrix):
+    """
+    function that finds a defined voxel position in a matrix
+
+    """
+    for i in range(len(matrix)):
+        if voxel[0] == matrix[i][0] and voxel[1] == matrix[i][1] and voxel[2] == matrix[i][2]:
             break
     return i
 
-def deformRN(sponsor,candidate):                #function that deforms the right neighbor of the sponsor
+
+def deformRN(sponsor, candidate):                #function that deforms the right neighbor of the sponsor
     compare = candidate[:]
     if (candidate[0] - sponsor[0]) < minimum:       #[0] is for x, [1] is for y and [2] is for z
         candidate[0] = sponsor[0] + minimum         #marker is to indicate if there was a change of positions
@@ -28,7 +37,7 @@ def deformRN(sponsor,candidate):                #function that deforms the right
         return candidate
 
 
-def deformLN(sponsor,candidate):                #function that deforms the LEFT neighbor of the sponsor
+def deformLN(sponsor, candidate):                #function that deforms the LEFT neighbor of the sponsor
     compare = candidate[:]    
     if (candidate[0] - sponsor[0]) < -maximum:     #[0] is for x, [1] is for y and [2] is for z
         candidate[0] = sponsor[0] - maximum        #marker is to indicate if there was a change of positions
@@ -88,7 +97,7 @@ def deformBN(sponsor, candidate):                #function that deforms the Bott
         return candidate
 
 
-def deformDN(sponsor,candidate):                #function that deforms the DOWN (in z) neighbor of the sponsor
+def deformDN(sponsor, candidate):                #function that deforms the DOWN (in z) neighbor of the sponsor
     compare = candidate[:]    
     if (candidate[2] - sponsor[2]) > -minimum:       #[0] is for x, [1] is for y and [2] is for z
         candidate[2] = sponsor[2] - minimum         
@@ -107,12 +116,12 @@ def deformDN(sponsor,candidate):                #function that deforms the DOWN 
     else:
         return candidate
 
-def findneighbors(sponsorpos,matrix,sponsorhist,side,step):         #this functions finds all the neighbors of the sponsor, it requires
-                                                                    #the
-                                                                                                                               #variable
-                                                                                                                               #step and
-                                                                                                                               #side
-                                                                                                                               #variables
+def findneighbors(sponsorpos,matrix,sponsorhist,side,step):
+    """
+    #this functions finds all the neighbors of the sponsor
+
+    """
+
     neighborlist = []                                                 #it also will not add values
                                                                       #outside
                                                                                            #the cube
@@ -165,59 +174,67 @@ def findneighbors(sponsorpos,matrix,sponsorhist,side,step):         #this functi
             neighborlist.append(dn)                                 
     return neighborlist
 
-def deformNeighbour(sponsor,neighbor):          #this matrix selects the neighbour against the sponsor and sends them
-                                                #to the correct function
-    if neighbor[3] == 0:                            #it returns the modified value of the neighbor
-        return deformRN(sponsor,neighbor)
-    if neighbor[3] == 1:                            
-        return deformLN(sponsor,neighbor)
-    if neighbor[3] == 2:                            
-        return deformTN(sponsor,neighbor)
-    if neighbor[3] == 3:                            
-        return deformBN(sponsor,neighbor)
-    if neighbor[3] == 4:                            
-        return deformDN(sponsor,neighbor)
 
-def updateMatrix(sponsor_list,new_matrix):  #this updates the matrix with the new deformed position
+# this matrix selects the neighbour against the sponsor and sends them
+# to the correct function it returns the modified value of the neighbor
+def deform_neighbour(sponsor, neighbor):
+    if neighbor[3] == 0:
+        return deformRN(sponsor, neighbor)
+    if neighbor[3] == 1:                            
+        return deformLN(sponsor, neighbor)
+    if neighbor[3] == 2:                            
+        return deformTN(sponsor, neighbor)
+    if neighbor[3] == 3:                            
+        return deformBN(sponsor, neighbor)
+    if neighbor[3] == 4:                            
+        return deformDN(sponsor, neighbor)
+
+
+# this updates the matrix with the new deformed position
+def update_matrix(sponsor_list, new_matrix):
     for i in range(len(sponsor_list)):
         use_sponsor = sponsor_list[i]
         new_matrix[use_sponsor[3]] = use_sponsor
     return new_matrix
 
-def buildHistory(sponsor_list):             #creates the history of all the sponsor positions so they cannot
-                                            #be deformed
+
+# creates the history of all the sponsor positions so they cannot be deformed
+def build_history(sponsor_list):
     sponsor_history = []
     for i in range(len(sponsor_list)):
         sponsor_history.append(sponsor_list[i][3])
     return sponsor_history
 
-def deform(sponsor_list,matrix,side,step,stiff):
-    global minimum, maximum, shear  #defines the global variables to be used in the module, in this case, the
-                                    #shear and the maximum and minimum distances of the chain.
+
+# defines the global variables to be used in the module, in this case, the
+# shear and the maximum and minimum distances of the chain.
+def deform(sponsor_list, matrix, side, step, stiff):
+    global minimum, maximum, shear
     minimum = step - stiff
     maximum = step + stiff
     shear = stiff
 
-    new_matrix = matrix[:]        #copies the original matrix in the new matrix that will be deformed
-    new_matrix = updateMatrix(sponsor_list,new_matrix) #updates the new matrix with the positions that are not sponsors
-    
-    neighbors = []                #initialises the neighbor list: it will be the list of
-                                  #neighbors values of the selected sponsor.
-    
-    #sponsor_history=[] #initialises the new sponsor history list, this list
-    #will have all the previous sponsors positions: position only
-    sponsor_history = buildHistory(sponsor_list)
-    
-    while len(sponsor_list) > 0:   #the loop will execute as long as there is an active sponsor
-        use_sponsor = sponsor_list.pop(0)    #this takes the first element of the sponsor list and pops it out to use
-        neighbors = (findneighbors(use_sponsor[3],matrix,sponsor_history,side,step)) #this function finds the neighbor voxels of the sponsor
+    # copies the original matrix in the new matrix that will be deformed
+    new_matrix = matrix[:]
+    # updates the new matrix with the positions that are not sponsors
+    new_matrix = update_matrix(sponsor_list, new_matrix)
+    sponsor_history = build_history(sponsor_list)
+    # the loop will execute as long as there is an active sponsor
+    while len(sponsor_list) > 0:
+        # this takes the first element of the sponsor list and pops it out to use
+        use_sponsor = sponsor_list.pop(0)
+        # this function finds the neighbor voxels of the sponsor
+        neighbors = (findneighbors(use_sponsor[3], matrix, sponsor_history, side, step))
         while len(neighbors) > 0:
             use_neighbor = neighbors.pop(0)
-            neighbor_position = find(use_neighbor,matrix)
-            use_neighbor = deformNeighbour(use_sponsor,use_neighbor)
-            sponsor_history.append(neighbor_position)            #this makes sure that the neighbor is not being worked on again.
+            neighbor_position = find(use_neighbor, matrix)
+            use_neighbor = deform_neighbour(use_sponsor, use_neighbor)
+            # this makes sure that the neighbor is not being worked on again.
+            sponsor_history.append(neighbor_position)
             if use_neighbor != 0:
-                use_neighbor[3] = neighbor_position             #adds the position value instead of the neighbor value
+                # adds the position value instead of the neighbor value
+                use_neighbor[3] = neighbor_position
                 sponsor_list.append(use_neighbor)
                 new_matrix[neighbor_position] = use_neighbor[:3]
-    return new_matrix   #returns the newly created deformed matrix           
+
+    return new_matrix
