@@ -16,8 +16,7 @@ def forcefeedback(oldmatrix,newmatrix,elast): #this function calculates the forc
     diff_x = 0.0
     diff_y = 0.0
     diff_z = 0.0
-    for i in range(len(oldmatrix)):     #this goes through both matrices and compares the distances between the
-                                        #voxels
+    for i in range(len(oldmatrix)):     #this goes through both matrices and compares the distances between the voxels
         for j in range(3):              #goes through 0:x,1:y,2:z
             if j == 0:
                 diff_x = diff_x + (oldmatrix[i][j] - newmatrix[i][j])
@@ -28,5 +27,5 @@ def forcefeedback(oldmatrix,newmatrix,elast): #this function calculates the forc
     diff_x = diff_x * elast
     diff_y = diff_y * elast
     diff_z = diff_z * elast
-    force_vector = [diff_x,diff_y,diff_z]
+    force_vector = [diff_x, diff_y, diff_z]
     return force_vector
