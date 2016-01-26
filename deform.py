@@ -11,11 +11,12 @@ def _find_index(voxel, matrix):
     function that finds a defined voxel position in a matrix
 
     """
+
     for i in range(len(matrix)):
         if voxel[0] == matrix[i][0] and voxel[1] == matrix[i][1] and voxel[2] == matrix[i][2]:
-            break
-    return i
+            return i
 
+    return 999
 
 def _deform_right(sponsor, candidate, step, stiffness_coef):
     """
@@ -224,15 +225,6 @@ def _update_matrix(sponsor_list, new_matrix):
     return new_matrix
 
 
-# creates the history of all the sponsor positions so they cannot be deformed
-def _build_history(sponsor_list):
-    sponsor_history = []
-    for el in sponsor_list:
-        sponsor_history.append(el[3])
-
-    return sponsor_history
-
-
 def _find_neighbors(sponsor, matrix, sponsor_hist, side, step, surface_only):
     """
     this functions finds all the neighbors of the sponsor, it requires the variable step and side variables
@@ -297,12 +289,15 @@ def deform(sponsor_list, original_cube, side, step, stiffness_coef):
     deform matrix from a sponsor list
 
     """
-
     # copies the original matrix in the new matrix that will be deformed
     new_matrix = original_cube[:]
+
     # updates the new matrix with the positions that are not sponsors
     new_matrix = _update_matrix(sponsor_list, new_matrix)
-    sponsor_history = _build_history(sponsor_list)
+
+    # creates the history of all the sponsor positions so they cannot be deformed
+    sponsor_history = [element[3] for element in sponsor_list]
+
     # the loop will execute as long as there is an active sponsor
     while len(sponsor_list) > 0:
         use_sponsor = sponsor_list.pop(0)
