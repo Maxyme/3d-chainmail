@@ -11,32 +11,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
-from deform import find_surface_sponsors, deform
 
-def main():
-    """
-    Entry point for the application
-
-    """
-    stiffness_coef = 0.4
-    voxel_distance = 1  # the distance between the voxels pf the cube.
-    cube_side_length = 10  # the side of the cube
-    displacement_area = 3
-    displacement_src = np.array([5, 5, 0])  # the voxel that will be displaced
-    displacement_dst = np.array([5, 5, -3])  # the final destination of the source voxel
-
-    original_cube = _get_cube_coordinates(cube_side_length, voxel_distance)
-
-    surface_sponsors = find_surface_sponsors(displacement_dst, displacement_src, original_cube, cube_side_length, voxel_distance, displacement_area)
-
-    new_matrix = deform(surface_sponsors, original_cube, cube_side_length, voxel_distance, stiffness_coef)
-
-    force_vector = _get_displacement_force(original_cube, new_matrix)
-
-    _show_3d_plot(displacement_dst, force_vector, new_matrix)
-
-
-def _show_3d_plot(displacement_dst, force_vector, new_matrix):
+def show_3d_plot(displacement_dst, force_vector, new_matrix):
     """
     Shows the displacement on a 3d chart
 
@@ -54,10 +30,9 @@ def _show_3d_plot(displacement_dst, force_vector, new_matrix):
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
     plt.show()
-    plt.waitforbuttonpress()
 
 
-def _get_cube_coordinates(side, step=1):
+def get_cube_coordinates(side, step=1):
     """
     Gets the xyz coordinates of a cube of selected side
 
@@ -72,7 +47,7 @@ def _get_cube_coordinates(side, step=1):
     return matrix_voxel
 
 
-def _get_displacement_force(original_cube, deformed_cube):
+def get_displacement_force(original_cube, deformed_cube):
     """
     Return force according to the sum of all the small displacements
     Goes through both matrices and compares the distances between the voxels and multiplies by the elastic coeff.
@@ -86,7 +61,4 @@ def _get_displacement_force(original_cube, deformed_cube):
 
     return diff
 
-if __name__ == '__main__':
-    main()
-    _get_cube_coordinates()
-    _get_displacement_force()
+
