@@ -1,18 +1,23 @@
-Python 3.5 3d Chainmail Algorithm Tester
+Python 3d Chainmail Algorithm Tester
 =======
 
-Python 3.5 3d Chainmail Algorithm Tester is a python application for creating a testing the deformation of a 3d Chainmail. 
+Python 3d Chainmail Algorithm Tester is a python application for creating a testing the deformation of a 3d Chainmail. 
 
 Requirements
 -------------
 * numpy
-
 * matplotlib
 
 Installation
 -------------
 ### Install requirements with Conda
-conda env create -f environment.yml
+`conda env create -f environment.yml`
+
+Running
+-------
+Change the parameters in main.py first (cube side, length, etc.) then,
+`source activate chainmail`
+`python main.py`
 
 Documentation
 -------------
