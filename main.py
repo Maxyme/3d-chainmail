@@ -37,11 +37,9 @@ def chainmail_entry(stiffness_coef, voxel_spacing, cube_side_length, disp_area, 
     fig = plt.figure(figsize=(15, 15))
     ax = fig.add_subplot(111, projection='3d')
 
-    # show the force vector
-    force_vector = original_cube - new_matrix
-    displacement_dst = disp_src + disp_vector
-    ax.quiver(displacement_dst[0], displacement_dst[1], displacement_dst[2],
-              force_vector[0], force_vector[1], force_vector[2])
+    # show the displacement vector
+    disp_end = disp_src + disp_vector
+    ax.quiver(disp_src[0], disp_src[1], disp_src[2], disp_end[0], disp_end[1], disp_end[2])
 
     # show the deformed cube
     x, y, z = zip(*new_matrix)

@@ -1,7 +1,7 @@
-Python 3d Chainmail Algorithm Tester
+Python chainmail algorithm 3d visualizer
 =======
 
-Python 3d Chainmail Algorithm Tester is a python application for creating a testing the deformation of a 3d Chainmail. 
+Python application for visualizing the deformation of a 3d cube using the chainmail algorithm. 
 
 Requirements
 -------------
@@ -15,11 +15,11 @@ Installation
 
 Running
 -------
-Change the parameters in main.py first (cube side, length, etc.) then,
+##### Change the parameters in main.py first (cube side, length, etc.) then,
 `source activate chainmail`
 `python main.py`
 
 Documentation
 -------------
-### Paper: 3D ChainMail: a Fast Algorithm for Deforming Volumetric Objects
+#### 3D ChainMail: a Fast Algorithm for Deforming Volumetric Objects
 http://www.merl.com/publications/docs/TR96-22.pdf

@@ -20,16 +20,16 @@ def deform(disp_src, disp_area, disp_vector, original_cube, voxel_spacing, stiff
     # Get the surface sponsors
     surface_sponsors = find_surface_sponsors(disp_dst, disp_src, original_cube, cube_side_length, voxel_spacing, disp_area)
 
+    # creates the history of all the sponsor positions so they cannot be deformed
+    sponsor_history = [element[3] for element in surface_sponsors]
+
     # copies the original matrix in the new matrix that will be deformed
     new_matrix = np.copy(original_cube)
 
     # updates the new matrix with the positions that are not sponsors
     new_matrix = update_matrix(surface_sponsors, new_matrix)
 
-    # creates the history of all the sponsor positions so they cannot be deformed
-    sponsor_history = [element[3] for element in surface_sponsors]
-
-    # the loop will execute as long as there is an active sponsor
+    # execute as long as there is an active sponsor
     while len(surface_sponsors) > 0:
         use_sponsor = surface_sponsors[0]
         surface_sponsors = np.delete(surface_sponsors, 0, axis=0)
@@ -40,7 +40,7 @@ def deform(disp_src, disp_area, disp_vector, original_cube, voxel_spacing, stiff
 
         while len(neighbors) > 0:
             use_neighbor = neighbors.pop(0)
-            neighbor_position = find_index(use_neighbor, original_cube)
+            neighbor_position = find_index(use_neighbor[:3], original_cube)
             use_neighbor = deform_neighbour(use_sponsor, use_neighbor, voxel_spacing, stiffness_coef)
             sponsor_history.append(neighbor_position)
 
@@ -82,7 +82,7 @@ def find_surface_sponsors(displacement_dst, displacement_src, original_cube, sid
 
             # Find and add the position of the new neighbors to the history list
             for el in storage_layer:
-                el[3] = find_index(el, original_cube)
+                el[3] = find_index(el[:3], original_cube)
                 sponsor_history.append(el[3])
 
         surface_sponsors.extend(storage_layer)
@@ -92,7 +92,7 @@ def find_surface_sponsors(displacement_dst, displacement_src, original_cube, sid
 
     # Deforms the surface found (all the neighbors) according to the vector of deformation applied to the sponsor
     displacement_vector = np.insert(displacement_vector, 3, values=0, axis=0)
-    surface_sponsors = np.array(surface_sponsors) + displacement_vector
+    surface_sponsors += displacement_vector
 
     return surface_sponsors
 
@@ -102,12 +102,7 @@ def find_index(voxel, matrix):
     function that finds a defined voxel position in a matrix
 
     """
-
-    for i in range(len(matrix)):
-        if voxel[0] == matrix[i][0] and voxel[1] == matrix[i][1] and voxel[2] == matrix[i][2]:
-            return i
-
-    return 999
+    return np.where(np.all(matrix == voxel, axis=1))[0][0]
 
 
 def deform_right(sponsor, candidate, step, stiffness_coef):
@@ -335,33 +330,33 @@ def find_neighbors(sponsor, matrix, sponsor_hist, side, step, surface_only):
     if sponsor[0] + step < side * step:
         rn = [sponsor[0] + step, sponsor[1], sponsor[2], 0]
         # if the right neighbor is not a previous sponsor, it adds the value to the neighbor list
-        if not find_index(rn, matrix) in sponsor_hist:
+        if not find_index(rn[:3], matrix) in sponsor_hist:
             neighbors.append(rn)
 
     if sponsor[0] - step >= 0:
         ln = [sponsor[0] - step, sponsor[1], sponsor[2], 1]
-        if not find_index(ln, matrix) in sponsor_hist:
+        if not find_index(ln[:3], matrix) in sponsor_hist:
             neighbors.append(ln)
 
     if sponsor[1] + step < side * step:
         tn = [sponsor[0], sponsor[1] + step, sponsor[2], 2]
-        if not find_index(tn, matrix) in sponsor_hist:
+        if not find_index(tn[:3], matrix) in sponsor_hist:
             neighbors.append(tn)
 
     if sponsor[1] - step >= 0:
         bn = [sponsor[0], sponsor[1] - step, sponsor[2], 3]
-        if not find_index(bn, matrix) in sponsor_hist:
+        if not find_index(bn[:3], matrix) in sponsor_hist:
             neighbors.append(bn)
 
     # find z neighbors only if not finding surface neighbors
     if sponsor[2] - step >= 0 and not surface_only:
         dn = [sponsor[0], sponsor[1], sponsor[2] - step, 4]
-        if not find_index(dn, matrix) in sponsor_hist:
+        if not find_index(dn[:3], matrix) in sponsor_hist:
             neighbors.append(dn)
 
     if sponsor[2] + step < side * step and not surface_only:
         dn = [sponsor[0], sponsor[1], sponsor[2] + step, 5]
-        if not find_index(dn, matrix) in sponsor_hist:
+        if not find_index(dn[:3], matrix) in sponsor_hist:
             neighbors.append(dn)
 
     return neighbors
