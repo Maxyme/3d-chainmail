@@ -15,11 +15,11 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def chainmail_entry(stiffness_coef, voxel_spacing, cube_side_length, disp_area, disp_src, disp_vector):
+def chainmail_entry(stiffness_coef, spacing, cube_side_length, disp_area, disp_src, disp_vector):
     """
     Entry point for the application
     stiffness_coef = 0.4
-    voxel_spacing = 1  # the distance between the voxels pf the cube.
+    spacing = 1  # the distance between the voxels pf the cube.
     cube_side_length = 10  # the side of the cube
     disp_area = 1
     disp_src = np.array([5, 5, 0])  # the voxel that will be displaced
@@ -31,7 +31,7 @@ def chainmail_entry(stiffness_coef, voxel_spacing, cube_side_length, disp_area, 
     original_cube = np.array(np.meshgrid(range_array, range_array, range_array)).T.reshape(-1, 3)
 
     # Deform the cube using the chainmail algorithm
-    new_matrix = deform.deform(disp_src, disp_area, disp_vector, original_cube, voxel_spacing, stiffness_coef)
+    new_matrix = deform.deform(disp_src, disp_area, disp_vector, original_cube, spacing, stiffness_coef)
 
     # get x, y, z for matplotlib
     fig = plt.figure(figsize=(15, 15))
@@ -51,5 +51,5 @@ def chainmail_entry(stiffness_coef, voxel_spacing, cube_side_length, disp_area, 
 
 
 if __name__ == '__main__':
-    chainmail_entry(stiffness_coef=0.4, voxel_spacing=1, cube_side_length=20, disp_area=5, disp_src=np.array([5, 5, 0]),
-                    disp_vector=np.array([0, 0, -3]))
+    chainmail_entry(stiffness_coef=0.4, spacing=3, cube_side_length=13, disp_area=5, disp_src=np.array([5, 5, 0]),
+                    disp_vector=np.array([0, 2, -5]))
