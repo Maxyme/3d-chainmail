@@ -1,7 +1,5 @@
-name: 3dchainmail
+name: chainmail
 dependencies:
-  - matplotlib
-  - numpy
   - python
-
-
+  - numpy
+  - matplotlib
