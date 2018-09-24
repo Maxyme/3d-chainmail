@@ -15,23 +15,23 @@ def deform(disp_src, disp_area, disp_vector, original_cube, voxel_spacing, stiff
     """
     disp_dst = disp_src + disp_vector
 
-    # Get the surface sponsors
-    surface_sponsors = find_surface_sponsors(disp_dst, disp_src, original_cube, voxel_spacing, disp_area)
+    # Get the original sponsors
+    original_sponsors = find_original_sponsors(disp_dst, disp_src, original_cube, voxel_spacing, disp_area)
 
     # creates the history of all the sponsor positions so they cannot be deformed
-    sponsor_history = surface_sponsors[:, -1]
+    sponsor_history = original_sponsors[:, -1]
 
     # copies the original matrix in the new matrix that will be deformed
     new_matrix = np.copy(original_cube)
 
     # Updates the matrix with the new deformed position
-    for el in surface_sponsors:
+    for el in original_sponsors:
         new_matrix[el[3]] = el[:3]
 
     # execute as long as there is an active sponsor
-    while len(surface_sponsors) > 0:
-        use_sponsor = surface_sponsors[0]
-        surface_sponsors = np.delete(surface_sponsors, 0, axis=0)
+    while len(original_sponsors) > 0:
+        use_sponsor = original_sponsors[0]
+        original_sponsors = np.delete(original_sponsors, 0, axis=0)
 
         sponsor_index = use_sponsor[3]
         sponsor = original_cube[np.int(sponsor_index)]
@@ -48,15 +48,15 @@ def deform(disp_src, disp_area, disp_vector, original_cube, voxel_spacing, stiff
                 # adds the position value instead of the neighbor value
                 use_neighbor[3] = neighbor_position
                 use_neighbor = np.array(use_neighbor)
-                surface_sponsors = np.vstack((surface_sponsors, use_neighbor))
+                original_sponsors = np.vstack((original_sponsors, use_neighbor))
                 new_matrix[neighbor_position] = np.array(use_neighbor[:3])
 
     return new_matrix
 
 
-def find_surface_sponsors(displacement_dst, displacement_src, original_cube, step, displacement_area):
+def find_original_sponsors(displacement_dst, displacement_src, original_cube, step, displacement_area):
     """
-    Find all surface sponsors, depending on the displacement area
+    Find all original sponsors, depending on the displacement area
 
     """
     displacement_vector = displacement_dst - displacement_src
@@ -64,10 +64,10 @@ def find_surface_sponsors(displacement_dst, displacement_src, original_cube, ste
     # position of the original modified voxel
     sponsor_index = find_index(displacement_src, original_cube)
     # the list of sponsors to include in the deform function, includes the sponsor position also [3]
-    surface_sponsors = np.append(displacement_dst, sponsor_index)
+    original_sponsors = np.append(displacement_dst, sponsor_index)
 
     # the list of neighbors at the layer of the radius function.  Ex for radius 1, the layer neighbor is the sponsor
-    outside_layer = [surface_sponsors]
+    outside_layer = [original_sponsors]
 
     # the sponsor_history list for a radius of 2, the new layer neighbors are the neighbors added for a radius of 1.
     # puts the sponsor position in a list so that it adds the sponsors when it looks for it
@@ -86,14 +86,13 @@ def find_surface_sponsors(displacement_dst, displacement_src, original_cube, ste
                 el[3] = find_index(el[:3], original_cube)
                 sponsor_history.append(el[3])
 
-        # surface_sponsors.extend(storage_layer)
-        surface_sponsors = np.append(np.asarray(storage_layer), [surface_sponsors], axis=0)
+        original_sponsors = np.append(np.asarray(storage_layer), [original_sponsors], axis=0)
         outside_layer.extend(storage_layer)
 
     # Deforms the surface found (all the neighbors) according to the vector of deformation applied to the sponsor
-    surface_sponsors[:, :3] += displacement_vector
+    original_sponsors[:, :3] += displacement_vector
 
-    return surface_sponsors
+    return original_sponsors
 
 
 def find_index(voxel, matrix):
@@ -113,19 +112,19 @@ def deform_right(sponsor, candidate, step, stiffness_coef):
     maximum = step + stiffness_coef
     shear = stiffness_coef
     compare = candidate[:]
-    if (candidate[0] - sponsor[0]) < minimum:
+    if candidate[0] - sponsor[0] < minimum:
         candidate[0] = sponsor[0] + minimum
-    elif (candidate[0] - sponsor[0]) > maximum:
+    elif candidate[0] - sponsor[0] > maximum:
         candidate[0] = sponsor[1] + maximum
 
-    if (candidate[1] - sponsor[1]) < -shear:
+    if candidate[1] - sponsor[1] < -shear:
         candidate[1] = sponsor[1] - shear
-    elif (candidate[1] - sponsor[1]) > shear:
+    elif candidate[1] - sponsor[1] > shear:
         candidate[1] = sponsor[1] + shear
 
-    if (candidate[2] - sponsor[2]) < -shear:
+    if candidate[2] - sponsor[2] < -shear:
         candidate[2] = sponsor[2] - shear
-    elif (candidate[2] - sponsor[2]) > shear:
+    elif candidate[2] - sponsor[2] > shear:
         candidate[2] = sponsor[2] + shear
 
     return 0 if np.array_equal(compare, candidate) else candidate
@@ -140,167 +139,162 @@ def deform_left(sponsor, candidate, step, stiffness_coef):
     maximum = step + stiffness_coef
     shear = stiffness_coef
     compare = candidate[:]
-    if (candidate[0] - sponsor[0]) < -maximum:
+    if candidate[0] - sponsor[0] < -maximum:
         candidate[0] = sponsor[0] - maximum
-    elif (candidate[0] - sponsor[0]) > -minimum:
+    elif candidate[0] - sponsor[0] > -minimum:
         candidate[0] = sponsor[1] - minimum
 
-    if (candidate[1] - sponsor[1]) < -shear:
+    if candidate[1] - sponsor[1] < -shear:
         candidate[1] = sponsor[1] + shear
-    elif (candidate[1] - sponsor[1]) > shear:
+    elif candidate[1] - sponsor[1] > shear:
         candidate[1] = sponsor[1] + shear
 
-    if (candidate[2] - sponsor[2]) < -shear:
+    if candidate[2] - sponsor[2] < -shear:
         candidate[2] = sponsor[2] - shear
-    elif (candidate[2] - sponsor[2]) > shear:
+    elif candidate[2] - sponsor[2] > shear:
         candidate[2] = sponsor[2] + shear
 
     return 0 if np.array_equal(compare, candidate) else candidate
 
 
-def deform_top(sponsor, candidate, step, stiffness_coef):
+def deform_top(sponsor, candidate, step, shear):
     """
     Deforms the Top (in y) neighbor of the sponsor
 
     """
-    minimum = step - stiffness_coef
-    maximum = step + stiffness_coef
-    shear = stiffness_coef
-    compare = candidate[:]
-    if (candidate[1] - sponsor[1]) < minimum:
+    minimum = step - shear
+    maximum = step + shear
+
+    original = candidate[:]
+    if candidate[1] - sponsor[1] < minimum:
         candidate[1] = sponsor[1] + minimum
-    elif (candidate[1] - sponsor[1]) > maximum:
+    elif candidate[1] - sponsor[1] > maximum:
         candidate[1] = sponsor[1] + maximum
 
-    if (candidate[0] - sponsor[0]) < -shear:
+    if candidate[0] - sponsor[0] < -shear:
         candidate[0] = sponsor[0] + shear
-    elif (candidate[0] - sponsor[0]) > shear:
+    elif candidate[0] - sponsor[0] > shear:
         candidate[0] = sponsor[1] + shear
 
-    if (candidate[2] - sponsor[2]) < -shear:
+    if candidate[2] - sponsor[2] < -shear:
         candidate[2] = sponsor[2] - shear
-    elif (candidate[2] - sponsor[2]) > shear:
+    elif candidate[2] - sponsor[2] > shear:
         candidate[2] = sponsor[2] + shear
 
-    return 0 if np.array_equal(compare, candidate) else candidate
+    return 0 if np.array_equal(original, candidate) else candidate
 
 
-def deform_lower(sponsor, candidate, step, stiffness_coef):
+def deform_lower(sponsor, candidate, step, shear):
     """
     Deforms the Bottom (in y) neighbor of the sponsor
 
     """
-    minimum = step - stiffness_coef
-    maximum = step + stiffness_coef
-    shear = stiffness_coef
-    compare = candidate[:]
-    if (candidate[1] - sponsor[1]) > -minimum:
+    minimum = step - shear
+    maximum = step + shear
+
+    original = candidate[:]
+    if candidate[1] - sponsor[1] > -minimum:
         candidate[1] = sponsor[1] - minimum
-    elif (candidate[1] - sponsor[1]) < -maximum:
+    elif candidate[1] - sponsor[1] < -maximum:
         candidate[1] = sponsor[1] - maximum
 
-    if (candidate[0] - sponsor[0]) < -shear:
+    if candidate[0] - sponsor[0] < -shear:
         candidate[0] = sponsor[0] + shear
-    elif (candidate[0] - sponsor[0]) > shear:
+    elif candidate[0] - sponsor[0] > shear:
         candidate[0] = sponsor[1] + shear
 
-    if (candidate[2] - sponsor[2]) < -shear:
+    if candidate[2] - sponsor[2] < -shear:
         candidate[2] = sponsor[2] - shear
-    elif (candidate[2] - sponsor[2]) > shear:
+    elif candidate[2] - sponsor[2] > shear:
         candidate[2] = sponsor[2] + shear
 
-    return 0 if np.array_equal(compare, candidate) else candidate
+    return 0 if np.array_equal(original, candidate) else candidate
 
 
-def deform_down(sponsor, candidate, step, stiffness_coef):
+def deform_down(sponsor, candidate, step, shear):
     """
     Deforms the DOWN (in z) neighbor of the sponsor
 
     """
-    minimum = step - stiffness_coef
-    maximum = step + stiffness_coef
-    shear = stiffness_coef
-    compare = candidate[:]
+    minimum = step - shear
+    maximum = step + shear
 
-    if (candidate[2] - sponsor[2]) > -minimum:
+    original = candidate[:]
+    if candidate[2] - sponsor[2] > -minimum:
         candidate[2] = sponsor[2] - minimum
-    elif (candidate[2] - sponsor[2]) < -maximum:
+    elif candidate[2] - sponsor[2] < -maximum:
         candidate[2] = sponsor[2] - maximum
 
-    if (candidate[0] - sponsor[0]) < -shear:
+    if candidate[0] - sponsor[0] < -shear:
         candidate[0] = sponsor[0] + shear
-    elif (candidate[0] - sponsor[0]) > shear:
+    elif candidate[0] - sponsor[0] > shear:
         candidate[0] = sponsor[0] + shear
 
-    if (candidate[1] - sponsor[1]) < -shear:
+    if candidate[1] - sponsor[1] < -shear:
         candidate[1] = sponsor[1] - shear
-    elif (candidate[1] - sponsor[1]) > shear:
+    elif candidate[1] - sponsor[1] > shear:
         candidate[1] = sponsor[1] + shear
 
-    return 0 if np.array_equal(compare, candidate) else candidate
+    return 0 if np.array_equal(original, candidate) else candidate
 
 
-def deform_up(sponsor, candidate, step, stiffness_coef):
+def deform_up(sponsor, candidate, step, shear):
     """
     Deforms the UP (in z) neighbor of the sponsor
 
     """
-    minimum = step - stiffness_coef
-    maximum = step + stiffness_coef
-    shear = stiffness_coef
-    compare = candidate[:]
+    minimum = step - shear
+    maximum = step + shear
 
-    if (candidate[2] - sponsor[2]) > minimum:
+    original = candidate[:]
+    if candidate[2] - sponsor[2] > minimum:
         candidate[2] = sponsor[2] + minimum
-    elif (candidate[2] - sponsor[2]) > maximum:
+    elif candidate[2] - sponsor[2] > maximum:
         candidate[2] = sponsor[2] + maximum
 
-    if (candidate[0] - sponsor[0]) < -shear:
+    if candidate[0] - sponsor[0] < -shear:
         candidate[0] = sponsor[0] + shear
-    elif (candidate[0] - sponsor[0]) > shear:
+    elif candidate[0] - sponsor[0] > shear:
         candidate[0] = sponsor[0] + shear
 
-    if (candidate[1] - sponsor[1]) < -shear:
+    if candidate[1] - sponsor[1] < -shear:
         candidate[1] = sponsor[1] - shear
-    elif (candidate[1] - sponsor[1]) > shear:
+    elif candidate[1] - sponsor[1] > shear:
         candidate[1] = sponsor[1] + shear
 
-    return 0 if np.array_equal(compare, candidate) else candidate
+    return 0 if np.array_equal(original, candidate) else candidate
 
 
-def deform_neighbour(sponsor, neighbor, step, stiffness_coef):
+def deform_neighbour(sponsor, neighbor, step, shear):
     """
     Selects the neighbour against the sponsor and sends them
     to the correct function it returns the modified value of the neighbor
     """
     if neighbor[3] == 0:
-        return deform_right(sponsor, neighbor, step, stiffness_coef)
+        return deform_right(sponsor, neighbor, step, shear)
     elif neighbor[3] == 1:
-        return deform_left(sponsor, neighbor, step, stiffness_coef)
+        return deform_left(sponsor, neighbor, step, shear)
     elif neighbor[3] == 2:
-        return deform_top(sponsor, neighbor, step, stiffness_coef)
+        return deform_top(sponsor, neighbor, step, shear)
     elif neighbor[3] == 3:
-        return deform_lower(sponsor, neighbor, step, stiffness_coef)
+        return deform_lower(sponsor, neighbor, step, shear)
     elif neighbor[3] == 4:
-        return deform_down(sponsor, neighbor, step, stiffness_coef)
+        return deform_down(sponsor, neighbor, step, shear)
     elif neighbor[3] == 5:
-        return deform_up(sponsor, neighbor, step, stiffness_coef)
+        return deform_up(sponsor, neighbor, step, shear)
 
 
 def find_neighbors(sponsor, cube_matrix, sponsor_hist, step, surface_only=True):
     """
-    Find all the neighbors of the sponsor, it requires the variable step and side variables
-    add previous sponsors, gets the original value of the sponsor to find the neighbors
-    it also will not add values outside the cube as neighbors, and it will not
-
+    Find all the neighbors of the sponsor. Will not add values outside the cube as neighbors.
+    Right neighbor value=0 ; left =1; top =2; bottom = 3 down = 4, up = 5.
+    Find z neighbors if not only surface neighbors
     """
-    side = np.power(cube_matrix.shape[0], 1 / 3)
+    side_length = np.ceil(np.power(cube_matrix.shape[0], 1 / 3) * step)
     neighbors = []
 
-    # the right neighbor value=0 ; left =1; top =2; bottom = 3 down = 4.
-    if sponsor[0] + step < side * step:
+    if sponsor[0] + step < side_length:
         rn = [sponsor[0] + step, sponsor[1], sponsor[2], 0]
-        # if the right neighbor is not a previous sponsor, it adds the value to the neighbor list
         if not find_index(rn[:3], cube_matrix) in sponsor_hist:
             neighbors.append(rn)
 
@@ -309,7 +303,7 @@ def find_neighbors(sponsor, cube_matrix, sponsor_hist, step, surface_only=True):
         if not find_index(ln[:3], cube_matrix) in sponsor_hist:
             neighbors.append(ln)
 
-    if sponsor[1] + step < side * step:
+    if sponsor[1] + step < side_length:
         tn = [sponsor[0], sponsor[1] + step, sponsor[2], 2]
         if not find_index(tn[:3], cube_matrix) in sponsor_hist:
             neighbors.append(tn)
@@ -319,15 +313,15 @@ def find_neighbors(sponsor, cube_matrix, sponsor_hist, step, surface_only=True):
         if not find_index(bn[:3], cube_matrix) in sponsor_hist:
             neighbors.append(bn)
 
-    # find z neighbors only if not finding surface neighbors
-    if sponsor[2] - step >= 0 and not surface_only:
-        dn = [sponsor[0], sponsor[1], sponsor[2] - step, 4]
-        if not find_index(dn[:3], cube_matrix) in sponsor_hist:
-            neighbors.append(dn)
+    if not surface_only:
+        if sponsor[2] - step >= 0:
+            dn = [sponsor[0], sponsor[1], sponsor[2] - step, 4]
+            if not find_index(dn[:3], cube_matrix) in sponsor_hist:
+                neighbors.append(dn)
 
-    if sponsor[2] + step < side * step and not surface_only:
-        dn = [sponsor[0], sponsor[1], sponsor[2] + step, 5]
-        if not find_index(dn[:3], cube_matrix) in sponsor_hist:
-            neighbors.append(dn)
+        if sponsor[2] + step < side_length:
+            un = [sponsor[0], sponsor[1], sponsor[2] + step, 5]
+            if not find_index(un[:3], cube_matrix) in sponsor_hist:
+                neighbors.append(un)
 
     return neighbors
