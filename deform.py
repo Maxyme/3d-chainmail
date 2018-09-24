@@ -39,7 +39,7 @@ def deform(disp_src, disp_area, disp_vector, original_cube, voxel_spacing, stiff
         neighbors = find_neighbors(sponsor, original_cube, sponsor_history, cube_side_length, voxel_spacing, False)
 
         while len(neighbors) > 0:
-            use_neighbor = neighbors.pop(0)
+            use_neighbor = np.array(neighbors.pop(0))
             neighbor_position = find_index(use_neighbor[:3], original_cube)
             use_neighbor = deform_neighbour(use_sponsor, use_neighbor, voxel_spacing, stiffness_coef)
             sponsor_history.append(neighbor_position)
@@ -59,40 +59,39 @@ def find_surface_sponsors(displacement_dst, displacement_src, original_cube, sid
     Find all surface sponsors, depending on the displacement area
 
     """
+    displacement_vector = displacement_dst - displacement_src
+
     # position of the original modified voxel
     sponsor_index = find_index(displacement_src, original_cube)
     # the list of sponsors to include in the deform function, includes the sponsor position also [3]
-    surface_sponsors = [np.append(displacement_dst, sponsor_index)]
+    surface_sponsors = np.append(displacement_dst, sponsor_index)
 
     # the list of neighbors at the layer of the radius function.  Ex for radius 1, the layer neighbor is the sponsor
-    outside_layer = surface_sponsors
+    outside_layer = [surface_sponsors]
 
     # the sponsor_history list for a radius of 2, the new layer neighbors are the neighbors added for a radius of 1.
     # puts the sponsor position in a list so that it adds the sponsors when it looks for it
     sponsor_history = [sponsor_index]
 
     for i in range(displacement_area):
-        # empty storage layer of neighbors
         storage_layer = []
         while len(outside_layer) > 0:
             index = outside_layer.pop(0)[3]
             sponsor = original_cube[index]
-            neighbors = find_neighbors(sponsor, original_cube, sponsor_history, side, step, True)
-            storage_layer.extend(neighbors)
+            neighbors = find_neighbors(sponsor, original_cube, sponsor_history, side, step)
+            storage_layer = storage_layer + neighbors
 
             # Find and add the position of the new neighbors to the history list
             for el in storage_layer:
                 el[3] = find_index(el[:3], original_cube)
                 sponsor_history.append(el[3])
 
-        surface_sponsors.extend(storage_layer)
+        # surface_sponsors.extend(storage_layer)
+        surface_sponsors = np.append(np.asarray(storage_layer), [surface_sponsors], axis=0)
         outside_layer.extend(storage_layer)
 
-    displacement_vector = np.subtract(displacement_dst, displacement_src)
-
     # Deforms the surface found (all the neighbors) according to the vector of deformation applied to the sponsor
-    displacement_vector = np.insert(displacement_vector, 3, values=0, axis=0)
-    surface_sponsors += displacement_vector
+    surface_sponsors[:, :3] += displacement_vector
 
     return surface_sponsors
 
@@ -317,7 +316,7 @@ def update_matrix(sponsor_list, new_matrix):
     return new_matrix
 
 
-def find_neighbors(sponsor, matrix, sponsor_hist, side, step, surface_only):
+def find_neighbors(sponsor, matrix, sponsor_hist, side, step, surface_only=True):
     """
     Find all the neighbors of the sponsor, it requires the variable step and side variables
     add previous sponsors, gets the original value of the sponsor to find the neighbors
