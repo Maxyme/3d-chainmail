@@ -51,5 +51,5 @@ def chainmail_entry(stiffness_coef, voxel_spacing, cube_side_length, disp_area, 
 
 
 if __name__ == '__main__':
-    chainmail_entry(stiffness_coef=0.4, voxel_spacing=1, cube_side_length=10, disp_area=1, disp_src=np.array([5, 5, 0]),
+    chainmail_entry(stiffness_coef=0.4, voxel_spacing=1, cube_side_length=20, disp_area=5, disp_src=np.array([5, 5, 0]),
                     disp_vector=np.array([0, 0, -3]))
