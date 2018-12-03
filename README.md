@@ -24,4 +24,4 @@ Documentation
 #### 3D ChainMail: a Fast Algorithm for Deforming Volumetric Objects
 http://www.merl.com/publications/docs/TR96-22.pdf
 
-![Image of chainmai](chainmail-min.png "Chainmail")
+![Image of chainmail](chainmail-min.png "Chainmail")
