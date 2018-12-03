@@ -17,7 +17,7 @@ class Volume(object):
     def __post_init__(self):
         """initial (x, y, z) positions of the items of the volume"""
         self.data = np.asarray(self.data)
-        self.size = self.data.shape
+        self.size = self.data.shape[:3]
         self.spacing = np.asarray(self.spacing)
         self.x, self.y, self.z = np.indices(self.size, dtype=float)
         if any(self.spacing > 1):
@@ -87,48 +87,67 @@ class Volume(object):
 
         return neighbors
 
-    def show(self):
+    def show(self, scatter=True):
         """show the volume's voxel positions"""
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-        def cuboid_data(p, size=(1, 1, 1)):
-            cube = np.array([[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
-                             [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
-                             [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
-                             [[0, 0, 1], [0, 0, 0], [0, 1, 0], [0, 1, 1]],
-                             [[0, 1, 0], [0, 1, 1], [1, 1, 1], [1, 1, 0]],
-                             [[0, 1, 1], [0, 0, 1], [1, 0, 1], [1, 1, 1]]], dtype=float)
+        if scatter:
+            # show the result in a scatter 3d plot
+            # This import registers the 3D projection, but is otherwise unused.
+            from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
-            for i in range(3):
-                cube[:, :, i] *= size[i]
+            # get x, y, z for matplotlib
+            fig = plt.figure(figsize=(15, 15))
+            ax = fig.add_subplot(111, projection='3d')
 
-            return cube + np.array(p)
+            # show the deformed cube
+            ax.scatter(self.x, self.y, self.z, c='r', marker='o')
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.set_zlabel('Z')
+            plt.show(block=True)
 
-        def plot_cube_at(positions):
-            colors = np.random.rand(len(positions), 3)
-            sizes = [(1, 1, 1)] * len(positions)
-            g = []
-            for p, s in zip(positions, sizes):
-                g.append(cuboid_data(p, size=s))
+        else:
+            # show the cubes in 3d for a nicer visualization
+            from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-            return Poly3DCollection(np.concatenate(g), facecolors=np.repeat(colors, 6, axis=0), edgecolor="k")
+            def cuboid_data(p, size=(1, 1, 1)):
+                cube = np.array([[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
+                                 [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
+                                 [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
+                                 [[0, 0, 1], [0, 0, 0], [0, 1, 0], [0, 1, 1]],
+                                 [[0, 1, 0], [0, 1, 1], [1, 1, 1], [1, 1, 0]],
+                                 [[0, 1, 1], [0, 0, 1], [1, 0, 1], [1, 1, 1]]], dtype=float)
 
-        x, y, z = self.x, self.y, self.z
-        positions = []
-        for i in range(len(self.x)):
-            for j in range(len(self.x)):
-                for k in range(len(self.x)):
-                    positions.append(self.get_position((i, j, k)))
+                for i in range(3):
+                    cube[:, :, i] *= size[i]
 
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        ax.set_aspect('equal')
+                return cube + np.array(p)
 
-        pc = plot_cube_at(positions)
-        ax.add_collection3d(pc)
-        max_range = np.max((x, y, z)) * 1.3
-        ax.set_xlim([0, max_range])
-        ax.set_ylim([0, max_range])
-        ax.set_zlim([0, max_range])
-        plt.show(block=True)
+            def plot_cube_at(positions, colors):
+
+                sizes = [(1, 1, 1)] * len(positions)
+                g = []
+                for p, s in zip(positions, sizes):
+                    g.append(cuboid_data(p, size=s))
+
+                return Poly3DCollection(np.concatenate(g), facecolors=colors, edgecolor="k")
+
+            x, y, z = self.x, self.y, self.z
+            positions = []
+            for i in range(len(self.x)):
+                for j in range(len(self.x)):
+                    for k in range(len(self.x)):
+                        positions.append(self.get_position((i, j, k)))
+
+            fig = plt.figure()
+            ax = fig.gca(projection='3d')
+            ax.set_aspect('equal')
+            colors = np.repeat(self.data.reshape(self.data.shape[0] * self.data.shape[1] * self.data.shape[2], 3), 6, axis=0)
+            pc = plot_cube_at(positions, colors)
+            ax.add_collection3d(pc)
+            max_range = np.max((x, y, z)) * 1.3
+            ax.set_xlim([0, max_range])
+            ax.set_ylim([0, max_range])
+            ax.set_zlim([0, max_range])
+            plt.show(block=True)
