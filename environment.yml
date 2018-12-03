@@ -1,5 +1,8 @@
 name: chainmail
+channels:
+  - conda-forge
 dependencies:
-  - python
-  - numpy
-  - matplotlib
+  - python =3.7.1
+  - numpy =1.15.4
+  - matplotlib =3.0.2
+  - pytest

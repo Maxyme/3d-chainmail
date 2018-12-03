@@ -17,7 +17,7 @@ Running
 -------
 ##### Change the parameters in main.py first (cube side, length, etc.) then,
 `source activate chainmail`
-`python main.py`
+`python debug_deform_volume.py`
 
 Documentation
 -------------
