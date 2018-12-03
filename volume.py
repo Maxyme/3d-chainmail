@@ -7,8 +7,8 @@ class Volume(object):
     """Deformable volume object"""
     data: list
     size: tuple = field(init=False)
-    deformation_range: tuple = (0.2, 0.2, 0.2)  # x, y and z elasticity
-    min_deformation: tuple = (0.05, 0.05, 0.05)  # point at which deformation is ignored
+    deformation_range: tuple = (0.2, 0.2, 0.2)  # x, y and z range of deformation
+    min_deformation: tuple = (0.04, 0.04, 0.04)  # point at which deformation is ignored
     spacing: tuple = (1, 1, 1)  # the spacing between the voxels
     x: list = field(init=False)
     y: list = field(init=False)
@@ -51,10 +51,11 @@ class Volume(object):
                 sponsor_hist.extend(neighbors)
 
     def get_position(self, index: slice) -> tuple:
+        """return the position of the index"""
         return self.x[index], self.y[index], self.z[index]
 
     def _deform_position(self, index: slice, deformation: list):
-        """deform the positions of the provided indices"""
+        """deform the position of the provided index"""
         self.x[index] += deformation[0]
         self.y[index] += deformation[1]
         self.z[index] += deformation[2]
@@ -93,7 +94,6 @@ class Volume(object):
 
         if scatter:
             # show the result in a scatter 3d plot
-            # This import registers the 3D projection, but is otherwise unused.
             from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
             # get x, y, z for matplotlib
