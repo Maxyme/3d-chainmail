@@ -16,10 +16,12 @@ Installation
 Running
 -------
 ##### Change the parameters in main.py first (cube side, length, etc.) then,
-`source activate chainmail`
+`source activate chainmail`  
 `python debug_deform_volume.py`
 
 Documentation
 -------------
 #### 3D ChainMail: a Fast Algorithm for Deforming Volumetric Objects
 http://www.merl.com/publications/docs/TR96-22.pdf
+
+![Image of chainmai](https://maxyme.github.com/Chainmail-Algorithm-3d/blob/master/chainmail.png)
