@@ -19,6 +19,14 @@ Running
 `source activate chainmail`  
 `python debug_deform_volume.py`
 
+
+Testing
+-------
+##### Simply run pytest with an activated environment
+`source activate chainmail`  
+`pytest`
+
+
 Documentation
 -------------
 #### 3D ChainMail: a Fast Algorithm for Deforming Volumetric Objects
