@@ -1,7 +1,7 @@
-Python chainmail algorithm 3d visualizer
+3d Chainmail
 =======
 
-Python application for visualizing the deformation of a 3d cube using the chainmail algorithm. 
+A python module to show a 3d deformable volume using the chainmail algorithm. 
 
 Requirements
 -------------
